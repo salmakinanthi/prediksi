@@ -12,22 +12,22 @@ def load_model():
 
 model = load_model()
 
-# Define preprocessing function
+# Define preprocessing functions
 def preprocess_data(data):
     # Encoding for categorical columns
-    encoder = ce.OrdinalEncoder(cols=['Job Title', 'Location', 'Company Name', 'Industry', 'Sector', 'Headquarters'])
+    encoder = ce.OrdinalEncoder(cols=['Job Title', 'Location', 'Sector'])  # Adjust based on your model
     data = encoder.fit_transform(data)
     
     # Handle Size and Revenue columns
-    data['Size'] = data['Size'].apply(lambda x: Size(x))
-    data['Revenue'] = data['Revenue'].apply(lambda x: Revenue(x))
+    data['Size'] = data['Size'].apply(Size)
+    data['Revenue'] = data['Revenue'].apply(Revenue)
     
     # Drop unnecessary columns if they were not included in the model
-    columns_to_drop = ['Job Description', 'Type of ownership', 'excel', 'spark', 'Company Name', 'Location', 'Founded', 'Competitors', 'Industry', 'hourly', 'employer_provided', 'company_txt', 'job_state', 'python_yn', 'R_yn', 'aws']
+    columns_to_drop = ['Job Description', 'Type of ownership', 'excel', 'spark', 'Company Name', 'Location', 'Founded', 'Competitors', 'Industry', 'hourly', 'employer_provided', 'company_txt', 'job_state', 'python_yn', 'R_yn', 'aws', 'Headquarters']
     
     # Check which columns exist in the DataFrame before attempting to drop them
     columns_existing = [col for col in columns_to_drop if col in data.columns]
-    data = data.drop(columns=columns_existing)
+    data = data.drop(columns=columns_existing, errors='ignore')
     
     # Return the preprocessed data
     return data
@@ -86,11 +86,11 @@ def main():
     # Form input for job data
     job_title = st.selectbox('Job Title', ['Software Engineer', 'Data Scientist', 'Product Manager', 'Sales Associate', 'Marketing Manager'])
     location = st.selectbox('Location', ['San Francisco', 'New York', 'Chicago', 'Seattle', 'Austin'])
-    company_name = st.text_input('Company Name')
-    industry = st.selectbox('Industry', ['Technology', 'Finance', 'Healthcare', 'Education', 'Manufacturing'])
+    company_name = st.text_input('Company Name')  # This may be removed if not used in model
+    industry = st.selectbox('Industry', ['Technology', 'Finance', 'Healthcare', 'Education', 'Manufacturing'])  # Ensure this matches
     sector = st.selectbox('Sector', ['Public', 'Private'])
     size = st.selectbox('Size', ['1 to 50 employees', '51 to 200 employees', '201 to 500 employees', '501 to 1000 employees', '1001 to 5000 employees', '5001 to 10000 employees', '10000+ employees'])
-    headquarters = st.text_input('Headquarters')
+    headquarters = st.text_input('Headquarters')  # This may be removed if not used in model
     revenue = st.selectbox('Revenue', ['Unknown / Non-Applicable', '$1 to $2 billion (USD)', '$2 to $5 billion (USD)', '$5 to $10 billion (USD)', '$10+ billion (USD)', '$100 to $500 million (USD)', '$500 million to $1 billion (USD)', '$50 to $100 million (USD)', '$10 to $25 million (USD)', '$25 to $50 million (USD)', '$5 to $10 million (USD)', '$1 to $5 million (USD)'])
     
     submit_button = st.button('Predict')
@@ -104,11 +104,11 @@ def main():
         data = {
             'Job Title': [job_title],
             'Location': [location],
-            'Company Name': [company_name],
-            'Industry': [industry],
+            'Company Name': [company_name],  # Remove if not used
+            'Industry': [industry],  # Remove if not used
             'Sector': [sector],
             'Size': [size],
-            'Headquarters': [headquarters],
+            'Headquarters': [headquarters],  # Remove if not used
             'Revenue': [revenue]
         }
 
