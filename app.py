@@ -26,6 +26,7 @@ encoder_file = load_file_from_url(ENCODER_URL)
 if model_file is not None and encoder_file is not None:
     try:
         model = joblib.load(model_file)
+        # Assume the encoder file contains mapping information
         encoder = joblib.load(encoder_file)
         st.write("Model and encoder loaded successfully.")
     except Exception as e:
@@ -43,8 +44,10 @@ def encode_data(data):
         if missing_cols:
             st.error(f"Missing columns in input data: {', '.join(missing_cols)}")
             return None
-
-        data_encoded = encoder.transform(data)
+        
+        # Initialize an encoder with the expected columns and mapping
+        ordinal_encoder = ce.OrdinalEncoder(cols=expected_columns, mapping=encoder.mapping)
+        data_encoded = ordinal_encoder.fit_transform(data)
         return data_encoded
     return data
 
