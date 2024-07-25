@@ -1,5 +1,5 @@
-streamlit==1.22.0
-pandas==2.1.0
-numpy==1.25.0
-scikit-learn==1.3.0
-category_encoders==2.7.0
+streamlit
+pandas
+numpy
+scikit-learn
+category_encoders
