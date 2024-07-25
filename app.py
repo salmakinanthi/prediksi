@@ -34,13 +34,10 @@ else:
     model = encoder = None
 
 # Function to convert categorical data to numerical data using Ordinal Encoding
-def encode_data(data, encoder):
-    try:
-        data_encoded = encoder.transform(data)
-        return data_encoded
-    except Exception as e:
-        st.error(f"Error during encoding: {e}")
-        return None
+def encode_data(data):
+    if encoder is not None:
+        data = encoder.transform(data)
+    return data
 
 # Function to parse salary range and compute average salary
 def salary(x):
@@ -116,16 +113,8 @@ input_data = pd.DataFrame({
 if input_data.isnull().values.any():
     st.error("Please fill out all fields correctly.")
 else:
-    # Ensure the input data matches the features expected by the encoder
-    expected_features = encoder.get_feature_names_out()
-    # Add missing columns and fill with default values (0 or NaN)
-    for feature in expected_features:
-        if feature not in input_data.columns:
-            input_data[feature] = 0
-    input_data = input_data[expected_features]  # Reorder columns to match expected features
-
     # Encode the input data
-    input_data_encoded = encode_data(input_data, encoder)
+    input_data_encoded = encode_data(input_data)
 
     # Make predictions
     if model is not None and st.button('Predict Salary'):
