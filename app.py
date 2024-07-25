@@ -4,11 +4,9 @@ import requests
 import pandas as pd
 from io import BytesIO
 import numpy as np
-import category_encoders as ce
 
 # URLs to the files on GitHub
 MODEL_URL = "https://raw.githubusercontent.com/salmakinanthi/prediksi/main/lrmodel.pkl"
-ENCODER_URL = "https://raw.githubusercontent.com/salmakinanthi/prediksi/main/encoder.pkl"
 
 def load_file_from_url(url):
     try:
@@ -19,36 +17,76 @@ def load_file_from_url(url):
         st.error(f"Error downloading file from {url}: {e}")
         return None
 
-# Load the model and encoder directly from URL
+# Load the model directly from URL
 model_file = load_file_from_url(MODEL_URL)
-encoder_file = load_file_from_url(ENCODER_URL)
 
-if model_file is not None and encoder_file is not None:
+if model_file is not None:
     try:
         model = joblib.load(model_file)
-        # Assume the encoder file contains mapping information
-        encoder = joblib.load(encoder_file)
-        st.write("Model and encoder loaded successfully.")
+        st.write("Model loaded successfully.")
     except Exception as e:
-        st.error(f"An error occurred while loading the model or encoder: {e}")
-        model = encoder = None
+        st.error(f"An error occurred while loading the model: {e}")
+        model = None
 else:
-    model = encoder = None
+    model = None
 
-# Function to convert categorical data to numerical data using Ordinal Encoding
+# Manual encoding mappings
+job_title_mapping = {
+    'Data Scientist': 1,
+    'Data Engineer': 2,
+    'Principal Data Scientist with over 10 years experience': 3,
+    'Data Operations Lead': 4,
+    'Research Scientist, Immunology - Cancer Biology': 5,
+    'Senior Scientist, Cell Pharmacology/Assay Development': 6,
+    'Scientist – …': 7
+}
+
+location_mapping = {
+    'San Francisco, CA': 1,
+    'New York, NY': 2,
+    'Chicago, IL': 3,
+    'Austin, TX': 4,
+    'Seattle, WA': 5
+}
+
+company_name_mapping = {
+    'Company A': 1,
+    'Company B': 2,
+    'Company C': 3,
+    'Company D': 4,
+    'Company E': 5
+}
+
+industry_mapping = {
+    'Enterprise Software & Network Solutions': 1,
+    'IT Services': 2,
+    'Computer Hardware & Software': 3,
+    'Other': 4
+}
+
+sector_mapping = {
+    'Information Technology': 1,
+    'Finance': 2,
+    'Healthcare': 3,
+    'Consumer Goods': 4
+}
+
+headquarters_mapping = {
+    'San Francisco, CA': 1,
+    'New York, NY': 2,
+    'Chicago, IL': 3,
+    'Austin, TX': 4,
+    'Seattle, WA': 5
+}
+
+# Function to encode data manually
 def encode_data(data):
-    if encoder is not None:
-        # Ensure columns in input data match those used during training
-        expected_columns = encoder.cols
-        missing_cols = [col for col in expected_columns if col not in data.columns]
-        if missing_cols:
-            st.error(f"Missing columns in input data: {', '.join(missing_cols)}")
-            return None
-        
-        # Initialize an encoder with the expected columns and mapping
-        ordinal_encoder = ce.OrdinalEncoder(cols=expected_columns, mapping=encoder.mapping)
-        data_encoded = ordinal_encoder.fit_transform(data)
-        return data_encoded
+    data['Job Title'] = data['Job Title'].map(job_title_mapping).fillna(-1)
+    data['Location'] = data['Location'].map(location_mapping).fillna(-1)
+    data['Company Name'] = data['Company Name'].map(company_name_mapping).fillna(-1)
+    data['Industry'] = data['Industry'].map(industry_mapping).fillna(-1)
+    data['Sector'] = data['Sector'].map(sector_mapping).fillna(-1)
+    data['Headquarters'] = data['Headquarters'].map(headquarters_mapping).fillna(-1)
     return data
 
 # Function to parse salary range and compute average salary
@@ -100,12 +138,12 @@ def Revenue(x):
 st.title("Salary Prediction App")
 
 # Input features from user
-job_title = st.text_input("Job Title")
-location = st.text_input("Location")
-company_name = st.text_input("Company Name")
-industry = st.text_input("Industry")
-sector = st.text_input("Sector")
-headquarters = st.text_input("Headquarters")
+job_title = st.selectbox("Job Title", list(job_title_mapping.keys()))
+location = st.selectbox("Location", list(location_mapping.keys()))
+company_name = st.selectbox("Company Name", list(company_name_mapping.keys()))
+industry = st.selectbox("Industry", list(industry_mapping.keys()))
+sector = st.selectbox("Sector", list(sector_mapping.keys()))
+headquarters = st.selectbox("Headquarters", list(headquarters_mapping.keys()))
 size = st.selectbox("Company Size", ['1 to 50 employees', '51 to 200 employees', '201 to 500 employees', '501 to 1000 employees', '1001 to 5000 employees', '5001 to 10000 employees', '10000+ employees'])
 revenue = st.selectbox("Company Revenue", ['Unknown / Non-Applicable', '$1 to $2 billion (USD)', '$2 to $5 billion (USD)', '$5 to $10 billion (USD)', '$10+ billion (USD)', '$100 to $500 million (USD)', '$500 million to $1 billion (USD)', '$50 to $100 million (USD)', '$10 to $25 million (USD)', '$25 to $50 million (USD)', '$5 to $10 million (USD)', '$1 to $5 million (USD)'])
 
@@ -125,7 +163,7 @@ input_data = pd.DataFrame({
 if input_data.isnull().values.any():
     st.error("Please fill out all fields correctly.")
 else:
-    # Encode the input data
+    # Encode the input data manually
     input_data_encoded = encode_data(input_data)
 
     # Make predictions
