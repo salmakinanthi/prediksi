@@ -23,7 +23,7 @@ model_file = load_file_from_url(MODEL_URL)
 if model_file is not None:
     try:
         model = joblib.load(model_file)
-        st.write("Model loaded successfully.")
+        # st.write("Model loaded successfully.")  # Comment out or remove this line
     except Exception as e:
         st.error(f"An error occurred while loading the model: {e}")
         model = None
@@ -111,8 +111,6 @@ revenue = st.selectbox("Company Revenue", [
     '$5 to $10 billion (USD)', '$10+ billion (USD)', '$100 to $500 million (USD)', 
     '$500 million to $1 billion (USD)', '$50 to $100 million (USD)', '$10 to $25 million (USD)', 
     '$25 to $50 million (USD)', '$5 to $10 million (USD)', '$1 to $5 million (USD)'])
-
-
 
 # Create a dataframe for the input data
 input_data = pd.DataFrame({
