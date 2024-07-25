@@ -4,6 +4,7 @@ import requests
 import pandas as pd
 from io import BytesIO
 import numpy as np
+import category_encoders as ce
 
 # URLs to the files on GitHub
 MODEL_URL = "https://raw.githubusercontent.com/salmakinanthi/prediksi/main/lrmodel.pkl"
@@ -36,7 +37,15 @@ else:
 # Function to convert categorical data to numerical data using Ordinal Encoding
 def encode_data(data):
     if encoder is not None:
-        data = encoder.transform(data)
+        # Ensure columns in input data match those used during training
+        expected_columns = encoder.cols
+        missing_cols = [col for col in expected_columns if col not in data.columns]
+        if missing_cols:
+            st.error(f"Missing columns in input data: {', '.join(missing_cols)}")
+            return None
+
+        data_encoded = encoder.transform(data)
+        return data_encoded
     return data
 
 # Function to parse salary range and compute average salary
@@ -118,10 +127,13 @@ else:
 
     # Make predictions
     if model is not None and st.button('Predict Salary'):
-        try:
-            prediction = model.predict(input_data_encoded)
-            st.write("The estimated salary is: ${:.2f}K".format(prediction[0]))
-        except Exception as e:
-            st.error(f"An error occurred during prediction: {e}")
+        if input_data_encoded is not None:
+            try:
+                prediction = model.predict(input_data_encoded)
+                st.write("The estimated salary is: ${:.2f}K".format(prediction[0]))
+            except Exception as e:
+                st.error(f"An error occurred during prediction: {e}")
+        else:
+            st.error("Error encoding input data.")
     else:
         st.warning("Model not loaded or not ready.")
