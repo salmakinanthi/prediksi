@@ -1,12 +1,12 @@
 import streamlit as st
-import joblib
-import requests
 import pandas as pd
-from io import BytesIO
-import category_encoders as ce
+import joblib
 import numpy as np
+import category_encoders as ce
+from io import BytesIO
+import requests
 
-# URLs to the files on GitHub
+# URL to the model on GitHub
 MODEL_URL = "https://raw.githubusercontent.com/salmakinanthi/prediksi/master/model.pkl"
 
 def load_file_from_url(url):
@@ -34,7 +34,7 @@ else:
 # Define preprocessing functions
 def preprocess_data(data):
     # Encoding for categorical columns
-    encoder = ce.OrdinalEncoder(cols=['Job Title', 'Location', 'Sector'])  # Adjust based on your model
+    encoder = ce.OrdinalEncoder(cols=['Job Title', 'Location', 'Industry', 'Sector'])
     data = encoder.fit_transform(data)
     
     # Handle Size and Revenue columns
@@ -44,11 +44,9 @@ def preprocess_data(data):
     # Drop unnecessary columns if they were not included in the model
     columns_to_drop = ['Job Description', 'Type of ownership', 'excel', 'spark', 'Company Name', 'Location', 'Founded', 'Competitors', 'Industry', 'hourly', 'employer_provided', 'company_txt', 'job_state', 'python_yn', 'R_yn', 'aws', 'Headquarters']
     
-    # Check which columns exist in the DataFrame before attempting to drop them
     columns_existing = [col for col in columns_to_drop if col in data.columns]
     data = data.drop(columns=columns_existing, errors='ignore')
     
-    # Return the preprocessed data
     return data
 
 def Size(x):
@@ -138,11 +136,9 @@ def main():
         input_df = preprocess_data(input_df)
 
         # Make prediction
-        if not input_df.empty:
-            prediction = model.predict(input_df)
-            st.write(f"Predicted Salary: ${prediction[0]:,.2f}")
-        else:
-            st.error("Error in preprocessing the data.")
+        prediction = model.predict(input_df)
+        
+        st.write(f"Predicted Salary: ${prediction[0]:,.2f}")
 
 if __name__ == "__main__":
     main()
