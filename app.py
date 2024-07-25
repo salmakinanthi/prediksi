@@ -5,8 +5,9 @@ import pandas as pd
 from io import BytesIO
 import numpy as np
 
-# URL to the model file on GitHub
+# URLs to the files on GitHub
 MODEL_URL = "https://raw.githubusercontent.com/salmakinanthi/prediksi/main/lrmodel.pkl"
+ENCODER_URL = "https://raw.githubusercontent.com/salmakinanthi/prediksi/main/encoder.pkl"
 
 def load_file_from_url(url):
     try:
@@ -17,26 +18,25 @@ def load_file_from_url(url):
         st.error(f"Error downloading file from {url}: {e}")
         return None
 
-# Load the model directly from URL
+# Load the model and encoder directly from URL
 model_file = load_file_from_url(MODEL_URL)
+encoder_file = load_file_from_url(ENCODER_URL)
 
-if model_file is not None:
+if model_file is not None and encoder_file is not None:
     try:
         model = joblib.load(model_file)
-        st.write("Model loaded successfully.")
+        encoder = joblib.load(encoder_file)
+        st.write("Model and encoder loaded successfully.")
     except Exception as e:
-        st.error(f"An error occurred while loading the model: {e}")
-        model = None
+        st.error(f"An error occurred while loading the model or encoder: {e}")
+        model = encoder = None
 else:
-    model = None
+    model = encoder = None
 
 # Function to convert categorical data to numerical data using Ordinal Encoding
 def encode_data(data):
-    import category_encoders as ce
-    encoder = ce.OrdinalEncoder(cols=['Job Title', 'Location', 'Company Name', 'Industry', 'Sector', 'Headquarters'])
-    # Using a predefined encoder might be required if training was done with a specific encoder.
-    encoder.fit(data)  # Fit encoder on data (if needed)
-    data = encoder.transform(data)
+    if encoder is not None:
+        data = encoder.transform(data)
     return data
 
 # Function to parse salary range and compute average salary
