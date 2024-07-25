@@ -99,7 +99,9 @@ st.title("Salary Prediction App")
 
 # Input features from user
 job_title = st.selectbox("Job Title", list(job_title_mapping.keys()))
+age = st.number_input('Age', min_value=0, max_value=100, value=25)
 headquarters = st.selectbox("Headquarters", list(headquarters_mapping.keys()))
+sector = st.selectbox("Sector", list(sector_mapping.keys()))
 size = st.selectbox("Company Size", [
     '1 to 50 employees', '51 to 200 employees', '201 to 500 employees', 
     '501 to 1000 employees', '1001 to 5000 employees', '5001 to 10000 employees', 
@@ -109,8 +111,8 @@ revenue = st.selectbox("Company Revenue", [
     '$5 to $10 billion (USD)', '$10+ billion (USD)', '$100 to $500 million (USD)', 
     '$500 million to $1 billion (USD)', '$50 to $100 million (USD)', '$10 to $25 million (USD)', 
     '$25 to $50 million (USD)', '$5 to $10 million (USD)', '$1 to $5 million (USD)'])
-sector = st.selectbox("Sector", list(sector_mapping.keys()))
-age = st.number_input('Age', min_value=0, max_value=100, value=25)
+
+
 
 # Create a dataframe for the input data
 input_data = pd.DataFrame({
