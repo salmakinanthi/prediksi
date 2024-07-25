@@ -6,7 +6,7 @@ from io import BytesIO
 import numpy as np
 
 # URLs to the files on GitHub
-MODEL_URL = "https://raw.githubusercontent.com/salmakinanthi/prediksi/main/lrmodel.pkl"
+MODEL_URL = "https://raw.githubusercontent.com/salmakinanthi/prediksi/main/model.pkl"
 
 def load_file_from_url(url):
     try:
@@ -41,27 +41,12 @@ job_title_mapping = {
     'Scientist – …': 7
 }
 
-location_mapping = {
+headquarters_mapping = {
     'San Francisco, CA': 1,
     'New York, NY': 2,
     'Chicago, IL': 3,
     'Austin, TX': 4,
     'Seattle, WA': 5
-}
-
-company_name_mapping = {
-    'Company A': 1,
-    'Company B': 2,
-    'Company C': 3,
-    'Company D': 4,
-    'Company E': 5
-}
-
-industry_mapping = {
-    'Enterprise Software & Network Solutions': 1,
-    'IT Services': 2,
-    'Computer Hardware & Software': 3,
-    'Other': 4
 }
 
 sector_mapping = {
@@ -71,37 +56,12 @@ sector_mapping = {
     'Consumer Goods': 4
 }
 
-headquarters_mapping = {
-    'San Francisco, CA': 1,
-    'New York, NY': 2,
-    'Chicago, IL': 3,
-    'Austin, TX': 4,
-    'Seattle, WA': 5
-}
-
 # Function to encode data manually
 def encode_data(data):
     data['Job Title'] = data['Job Title'].map(job_title_mapping).fillna(-1)
-    data['Location'] = data['Location'].map(location_mapping).fillna(-1)
-    data['Company Name'] = data['Company Name'].map(company_name_mapping).fillna(-1)
-    data['Industry'] = data['Industry'].map(industry_mapping).fillna(-1)
-    data['Sector'] = data['Sector'].map(sector_mapping).fillna(-1)
     data['Headquarters'] = data['Headquarters'].map(headquarters_mapping).fillna(-1)
+    data['Sector'] = data['Sector'].map(sector_mapping).fillna(-1)
     return data
-
-# Function to parse salary range and compute average salary
-def salary(x):
-    try:
-        a = x.split('-')
-        b = (int(a[0].replace('$', '').replace('K', '')) + int(a[1].replace('$', '').replace('K', ''))) / 2
-        return b
-    except:
-        try:
-            a = x.replace('Employer Provided Salary:', '').split('-')
-            b = (int(a[0].replace('$', '').replace('K', '')) + int(a[1].replace('$', '').replace('K', ''))) / 2
-        except:
-            return np.nan
-        return b
 
 # Function to convert company size to numerical values
 def Size(x):
@@ -139,24 +99,27 @@ st.title("Salary Prediction App")
 
 # Input features from user
 job_title = st.selectbox("Job Title", list(job_title_mapping.keys()))
-location = st.selectbox("Location", list(location_mapping.keys()))
-company_name = st.selectbox("Company Name", list(company_name_mapping.keys()))
-industry = st.selectbox("Industry", list(industry_mapping.keys()))
-sector = st.selectbox("Sector", list(sector_mapping.keys()))
 headquarters = st.selectbox("Headquarters", list(headquarters_mapping.keys()))
-size = st.selectbox("Company Size", ['1 to 50 employees', '51 to 200 employees', '201 to 500 employees', '501 to 1000 employees', '1001 to 5000 employees', '5001 to 10000 employees', '10000+ employees'])
-revenue = st.selectbox("Company Revenue", ['Unknown / Non-Applicable', '$1 to $2 billion (USD)', '$2 to $5 billion (USD)', '$5 to $10 billion (USD)', '$10+ billion (USD)', '$100 to $500 million (USD)', '$500 million to $1 billion (USD)', '$50 to $100 million (USD)', '$10 to $25 million (USD)', '$25 to $50 million (USD)', '$5 to $10 million (USD)', '$1 to $5 million (USD)'])
+size = st.selectbox("Company Size", [
+    '1 to 50 employees', '51 to 200 employees', '201 to 500 employees', 
+    '501 to 1000 employees', '1001 to 5000 employees', '5001 to 10000 employees', 
+    '10000+ employees'])
+revenue = st.selectbox("Company Revenue", [
+    'Unknown / Non-Applicable', '$1 to $2 billion (USD)', '$2 to $5 billion (USD)', 
+    '$5 to $10 billion (USD)', '$10+ billion (USD)', '$100 to $500 million (USD)', 
+    '$500 million to $1 billion (USD)', '$50 to $100 million (USD)', '$10 to $25 million (USD)', 
+    '$25 to $50 million (USD)', '$5 to $10 million (USD)', '$1 to $5 million (USD)'])
+sector = st.selectbox("Sector", list(sector_mapping.keys()))
+age = st.number_input('Age', min_value=0, max_value=100, value=25)
 
 # Create a dataframe for the input data
 input_data = pd.DataFrame({
     'Job Title': [job_title],
-    'Location': [location],
-    'Company Name': [company_name],
-    'Industry': [industry],
-    'Sector': [sector],
     'Headquarters': [headquarters],
     'Size': [Size(size)],
-    'Revenue': [Revenue(revenue)]
+    'Sector': [sector],
+    'Revenue': [Revenue(revenue)],
+    'age': [age]
 })
 
 # Check for NaNs in the input data
