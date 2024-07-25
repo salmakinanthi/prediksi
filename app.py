@@ -34,7 +34,9 @@ else:
 def encode_data(data):
     import category_encoders as ce
     encoder = ce.OrdinalEncoder(cols=['Job Title', 'Location', 'Company Name', 'Industry', 'Sector', 'Headquarters'])
-    data = encoder.fit_transform(data)
+    # Using a predefined encoder might be required if training was done with a specific encoder.
+    encoder.fit(data)  # Fit encoder on data (if needed)
+    data = encoder.transform(data)
     return data
 
 # Function to parse salary range and compute average salary
@@ -107,12 +109,19 @@ input_data = pd.DataFrame({
     'Revenue': [Revenue(revenue)]
 })
 
-# Encode the input data
-input_data_encoded = encode_data(input_data)
-
-# Make predictions
-if model is not None and st.button('Predict Salary'):
-    prediction = model.predict(input_data_encoded)
-    st.write("The estimated salary is: ${:.2f}K".format(prediction[0]))
+# Check for NaNs in the input data
+if input_data.isnull().values.any():
+    st.error("Please fill out all fields correctly.")
 else:
-    st.warning("Model not loaded or not ready.")
+    # Encode the input data
+    input_data_encoded = encode_data(input_data)
+
+    # Make predictions
+    if model is not None and st.button('Predict Salary'):
+        try:
+            prediction = model.predict(input_data_encoded)
+            st.write("The estimated salary is: ${:.2f}K".format(prediction[0]))
+        except Exception as e:
+            st.error(f"An error occurred during prediction: {e}")
+    else:
+        st.warning("Model not loaded or not ready.")
