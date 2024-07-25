@@ -4,19 +4,29 @@ import numpy as np
 import pickle
 import category_encoders as ce
 
-# Define functions for feature engineering
-def salary(x):
-    try:
-        a = x.split('-')
-        b = int(a[0].replace('$', '').replace('K', '')) + int(a[1].replace('$', '').split("K")[0]) / 2
-        return b
-    except:
-        try:
-            a = x.replace('Employer Provided Salary:', '').split('-')
-            b = int(a[0].replace('$', '').replace('K', '')) + int(a[1].replace('$', '').split("K")[0]) / 2
-        except:
-            return ""
-        return b
+# Load the pre-trained model
+@st.cache
+def load_model():
+    with open('model.pkl', 'rb') as file:
+        return pickle.load(file)
+
+model = load_model()
+
+# Define preprocessing function
+def preprocess_data(data):
+    # Encoding for categorical columns
+    encoder = ce.OrdinalEncoder(cols=['Job Title', 'Location', 'Company Name', 'Industry', 'Sector', 'Headquarters'])
+    data = encoder.fit_transform(data)
+    
+    # Handle Size and Revenue columns
+    data['Size'] = data['Size'].apply(lambda x: Size(x))
+    data['Revenue'] = data['Revenue'].apply(lambda x: Revenue(x))
+    
+    # Drop unnecessary columns if they were not included in the model
+    data = data.drop(['Job Description', 'Type of ownership', 'excel', 'spark', 'Company Name', 'Location', 'Founded', 'Competitors', 'Industry', 'hourly', 'employer_provided', 'company_txt', 'job_state', 'python_yn', 'R_yn', 'aws'], axis=1)
+    
+    # Return the preprocessed data
+    return data
 
 def Size(x):
     if x == '1 to 50 employees':
@@ -34,7 +44,7 @@ def Size(x):
     elif x == '10000+ employees':
         return 10000
     else:
-        return ""
+        return np.nan
 
 def Revenue(x):
     if x == 'Unknown / Non-Applicable':
@@ -62,44 +72,52 @@ def Revenue(x):
     elif x == '$1 to $5 million (USD)':
         return (1 + 5) / 2
     else:
-        return ""
+        return np.nan
 
-# Load the pre-trained model
-@st.cache
-def load_model():
-    with open('model.pkl', 'rb') as file:
-        return pickle.load(file)
+def main():
+    st.title('Job Salary Prediction App')
+    
+    st.write("Masukkan data pekerjaan untuk prediksi gaji:")
+    
+    # Form input for job data
+    job_title = st.selectbox('Job Title', ['Software Engineer', 'Data Scientist', 'Product Manager', 'Sales Associate', 'Marketing Manager'])
+    location = st.selectbox('Location', ['San Francisco', 'New York', 'Chicago', 'Seattle', 'Austin'])
+    company_name = st.text_input('Company Name')
+    industry = st.selectbox('Industry', ['Technology', 'Finance', 'Healthcare', 'Education', 'Manufacturing'])
+    sector = st.selectbox('Sector', ['Public', 'Private'])
+    size = st.selectbox('Size', ['1 to 50 employees', '51 to 200 employees', '201 to 500 employees', '501 to 1000 employees', '1001 to 5000 employees', '5001 to 10000 employees', '10000+ employees'])
+    headquarters = st.text_input('Headquarters')
+    revenue = st.selectbox('Revenue', ['Unknown / Non-Applicable', '$1 to $2 billion (USD)', '$2 to $5 billion (USD)', '$5 to $10 billion (USD)', '$10+ billion (USD)', '$100 to $500 million (USD)', '$500 million to $1 billion (USD)', '$50 to $100 million (USD)', '$10 to $25 million (USD)', '$25 to $50 million (USD)', '$5 to $10 million (USD)', '$1 to $5 million (USD)'])
+    
+    submit_button = st.button('Predict')
 
-model = load_model()
+    if submit_button:
+        if model is None:
+            st.error("Model is not properly loaded.")
+            return
+        
+        # Create dictionary from input
+        data = {
+            'Job Title': [job_title],
+            'Location': [location],
+            'Company Name': [company_name],
+            'Industry': [industry],
+            'Sector': [sector],
+            'Size': [size],
+            'Headquarters': [headquarters],
+            'Revenue': [revenue]
+        }
 
-# Streamlit UI
-st.title("Salary Prediction Model")
+        # Create DataFrame from the input data
+        input_df = pd.DataFrame(data)
+        
+        # Preprocess data
+        input_df = preprocess_data(input_df)
 
-# Input fields for user data
-st.sidebar.header("Input Data")
-input_data = {
-    'Job Title': st.sidebar.text_input('Job Title', value=""),
-    'Location': st.sidebar.text_input('Location', value=""),
-    'Company Name': st.sidebar.text_input('Company Name', value=""),
-    'Industry': st.sidebar.text_input('Industry', value=""),
-    'Sector': st.sidebar.text_input('Sector', value=""),
-    'Size': st.sidebar.text_input('Size', value=""),
-    'Headquarters': st.sidebar.text_input('Headquarters', value=""),
-    'Revenue': st.sidebar.text_input('Revenue', value="")
-}
+        # Make prediction
+        prediction = model.predict(input_df)
+        
+        st.write(f"Predicted Salary: ${prediction[0]:,.2f}")
 
-# Create a button for prediction
-if st.sidebar.button('Predict'):
-    # Create DataFrame for input data
-    input_df = pd.DataFrame([input_data])
-
-    # Data processing for input data
-    input_df['Size'] = input_df['Size'].apply(lambda x: Size(x))
-    input_df['Revenue'] = input_df['Revenue'].apply(lambda x: Revenue(x))
-
-    encoder = ce.OrdinalEncoder(cols=['Job Title', 'Location', 'Company Name', 'Industry', 'Sector', 'Headquarters'])
-    input_df = encoder.fit_transform(input_df)
-
-    # Make prediction
-    prediction = model.predict(input_df)
-    st.write(f"Predicted Salary: ${prediction[0]:,.2f}")
+if __name__ == "__main__":
+    main()
