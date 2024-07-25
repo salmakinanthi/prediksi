@@ -23,7 +23,11 @@ def preprocess_data(data):
     data['Revenue'] = data['Revenue'].apply(lambda x: Revenue(x))
     
     # Drop unnecessary columns if they were not included in the model
-    data = data.drop(['Job Description', 'Type of ownership', 'excel', 'spark', 'Company Name', 'Location', 'Founded', 'Competitors', 'Industry', 'hourly', 'employer_provided', 'company_txt', 'job_state', 'python_yn', 'R_yn', 'aws'], axis=1)
+    columns_to_drop = ['Job Description', 'Type of ownership', 'excel', 'spark', 'Company Name', 'Location', 'Founded', 'Competitors', 'Industry', 'hourly', 'employer_provided', 'company_txt', 'job_state', 'python_yn', 'R_yn', 'aws']
+    
+    # Check which columns exist in the DataFrame before attempting to drop them
+    columns_existing = [col for col in columns_to_drop if col in data.columns]
+    data = data.drop(columns=columns_existing)
     
     # Return the preprocessed data
     return data
