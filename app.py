@@ -118,7 +118,11 @@ if input_data.isnull().values.any():
 else:
     # Ensure the input data matches the features expected by the encoder
     expected_features = encoder.get_feature_names_out()
-    input_data = input_data.reindex(columns=expected_features, fill_value=0)  # Fill missing columns with 0
+    # Add missing columns and fill with default values (0 or NaN)
+    for feature in expected_features:
+        if feature not in input_data.columns:
+            input_data[feature] = 0
+    input_data = input_data[expected_features]  # Reorder columns to match expected features
 
     # Encode the input data
     input_data_encoded = encode_data(input_data, encoder)
