@@ -1,5 +1,9 @@
 streamlit
+joblib
+requests
 pandas
 numpy
-scikit-learn
+matplotlib
+seaborn
 category_encoders
+scikit-learn
