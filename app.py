@@ -3,6 +3,8 @@ import joblib
 import requests
 import pandas as pd
 from io import BytesIO
+import category_encoders as ce
+import numpy as np
 
 # URLs to the files on GitHub
 MODEL_URL = "https://raw.githubusercontent.com/salmakinanthi/prediksi/master/model.pkl"
@@ -21,10 +23,11 @@ model_file = load_file_from_url(MODEL_URL)
 
 if model_file is not None:
     try:
-        model, feature_names = joblib.load(model_file)
+        model = joblib.load(model_file)
         st.write("Model loaded successfully.")
     except Exception as e:
         st.error(f"An error occurred while loading the model: {e}")
+        model = None
 else:
     model = None
 
@@ -135,9 +138,11 @@ def main():
         input_df = preprocess_data(input_df)
 
         # Make prediction
-        prediction = model.predict(input_df)
-        
-        st.write(f"Predicted Salary: ${prediction[0]:,.2f}")
+        if not input_df.empty:
+            prediction = model.predict(input_df)
+            st.write(f"Predicted Salary: ${prediction[0]:,.2f}")
+        else:
+            st.error("Error in preprocessing the data.")
 
 if __name__ == "__main__":
     main()
