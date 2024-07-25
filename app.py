@@ -1,16 +1,32 @@
 import streamlit as st
+import joblib
+import requests
 import pandas as pd
-import numpy as np
-import pickle
-import category_encoders as ce
+from io import BytesIO
 
-# Load the pre-trained model
-@st.cache
-def load_model():
-    with open('model.pkl', 'rb') as file:
-        return pickle.load(file)
+# URLs to the files on GitHub
+MODEL_URL = "https://raw.githubusercontent.com/salmakinanthi/prediksi/master/model.pkl"
 
-model = load_model()
+def load_file_from_url(url):
+    try:
+        response = requests.get(url)
+        response.raise_for_status()  # Raise an HTTPError for bad responses
+        return BytesIO(response.content)
+    except requests.exceptions.RequestException as e:
+        st.error(f"Error downloading file from {url}: {e}")
+        return None
+
+# Load the model directly from URL
+model_file = load_file_from_url(MODEL_URL)
+
+if model_file is not None:
+    try:
+        model, feature_names = joblib.load(model_file)
+        st.write("Model loaded successfully.")
+    except Exception as e:
+        st.error(f"An error occurred while loading the model: {e}")
+else:
+    model = None
 
 # Define preprocessing functions
 def preprocess_data(data):
