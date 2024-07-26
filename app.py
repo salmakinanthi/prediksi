@@ -5,6 +5,9 @@ import pandas as pd
 from io import BytesIO
 import numpy as np
 
+# Set page configuration
+st.set_page_config(page_title="Salary Prediction App", page_icon=":moneybag:", layout="wide")
+
 # URLs to the files on GitHub
 MODEL_URL = "https://raw.githubusercontent.com/salmakinanthi/prediksi/main/model.pkl"
 
@@ -132,8 +135,6 @@ st.markdown("""
         }
     </style>
     """, unsafe_allow_html=True)
-
-st.set_page_config(page_title="Salary Prediction App", page_icon=":moneybag:", layout="wide")
 
 st.title("Salary Prediction App")
 
