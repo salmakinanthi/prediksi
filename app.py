@@ -40,7 +40,7 @@ job_title_mapping = {
     'Data Operations Lead': 4,
     'Research Scientist, Immunology - Cancer Biology': 5,
     'Senior Scientist, Cell Pharmacology/Assay Development': 6,
-    'Scientist – …': 7
+    'Scientist': 7
 }
 
 headquarters_mapping = {
@@ -100,14 +100,14 @@ def Revenue(x):
 st.markdown("""
     <style>
         body {
-            background-color: #f7f7f7;
+            background-color: #FFEFEF;
         }
         .stApp {
-            background-color: #f7f7f7;
+            background-color: #FFEFEF;
             color: #333;
         }
         .stButton button {
-            background-color: #ffb6c1;
+            background-color: #FC819E;
             border-radius: 12px;
             border: none;
             color: white;
@@ -121,11 +121,11 @@ st.markdown("""
             transition-duration: 0.4s;
         }
         .stButton button:hover {
-            background-color: #ff6f61;
+            background-color: #FFB1B1;
             color: white;
         }
         .stSelectbox, .stNumberInput, .stTextInput {
-            border: 1px solid #ffb6c1;
+            border: 1px solid #FFB1B1;
             border-radius: 4px;
             padding: 8px;
         }
