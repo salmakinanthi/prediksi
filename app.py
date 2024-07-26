@@ -26,7 +26,6 @@ model_file = load_file_from_url(MODEL_URL)
 if model_file is not None:
     try:
         model = joblib.load(model_file)
-        st.success("Model loaded successfully.")
     except Exception as e:
         st.error(f"An error occurred while loading the model: {e}")
         model = None
